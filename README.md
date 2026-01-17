@@ -80,7 +80,7 @@ python3 scanner.py --github
 
 ## 📄 License
 
-MIT License - see [LICENSE](LICENSE) file for details.
+MIT License - see [LICENSE](https://github.com/BCEVM/WPScanner/blob/main/LICENSE.txt) file for details.
 
 ## 👥 Author
 

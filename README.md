@@ -6,3 +6,5 @@ Advanced WordPress security scanner with auto-update from GitHub.
 - Auto-update from GitHub (github.com/BCEVM/WPScanner)
 - WordPress vulnerability detection
 - Plugin enumeration
+
+

@@ -31,18 +31,17 @@ pip install -r requirements.txt
 
 ```
 ## 🎯 Quick Start ##  
-----------------------------
-# Scan a WordPress site
+- ✅ **Scan a WordPress site**
 python3 scanner.py https://example.com --scan
 
-# Check for updates
+- ✅ **Check for updates**
 python3 scanner.py --check-update
 
-# Update to latest version
+- ✅ **Update to latest version**
 python3 scanner.py --update
 
-# Setup environment
+- ✅ **Setup environment**
 python3 scanner.py --setup
 
-# Show help
+- ✅ **Show help**
 python3 scanner.py --help

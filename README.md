@@ -33,15 +33,39 @@ pip install -r requirements.txt
 ## 🎯 Quick Start ##  
 - ✅ **Scan a WordPress site**
 python3 scanner.py https://example.com --scan
-
 - ✅ **Check for updates**
 python3 scanner.py --check-update
-
 - ✅ **Update to latest version**
 python3 scanner.py --update
-
 - ✅ **Setup environment**
 python3 scanner.py --setup
-
 - ✅ **Show help**
 python3 scanner.py --help
+
+## 📋 Usage Examples ##
+- ✅ **Simple scan**
+python3 scanner.py https://target.com --scan
+- ✅ **Full scan with exploitation**
+python3 scanner.py https://target.com --full
+- ✅ **Scan from file (multiple targets)**
+python3 scanner.py -f targets.txt
+
+### advance features ###
+- ✅ **Exploit specific plugin**
+python3 scanner.py https://target.com --exploit --plugin "contact-form-7"
+- ✅ **Brute force attack**
+python3 scanner.py https://target.com --brute --username admin
+- ✅ **Shell upload test**
+python3 scanner.py https://target.com --upload-test
+- ✅ **WAF bypass mode**
+python3 scanner.py https://target.com --waf-bypass
+- ✅ **Check for updates**
+python3 scanner.py --check-update
+- ✅ **Update tool**
+python3 scanner.py --update
+- ✅ **Sync exploit database**
+python3 scanner.py --sync
+- ✅ **Show configuration**
+python3 scanner.py --config
+- ✅ **Show GitHub info**
+python3 scanner.py --github

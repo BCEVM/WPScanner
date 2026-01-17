@@ -1,1 +1,98 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
 
+# Environment
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Tool generated files
+backups/
+logs/
+reports/
+data/
+*.log
+*.tmp
+*.temp
+
+# Config files (user-specific)
+bcevm_config.json
+config.local.json
+*.local.json
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Backups
+*.bak
+*.backup
+*.old
+
+# Temporary files
+temp/
+tmp/
+.cache/
+
+# System files
+*.pid
+*.lock
+
+# Security
+secrets.txt
+passwords.txt
+credentials.json
+*.key
+*.pem
+
+# Scan results
+scan_*.txt
+report_*.txt
+output_*.txt
+
+# Upload test files
+shell.php
+bcevm.php
+cmd.php
+rce.php
+test.php

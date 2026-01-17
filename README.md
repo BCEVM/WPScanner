@@ -11,6 +11,6 @@ Advanced WordPress security scanner with auto-update from GitHub.
 
 ## Installation
 ```bash
-git clone https://github.com/BCEVM-Hacktivist-Indonesia/wp-security-scanner.git
-cd wp-security-scanner
+git clone https://github.com/BCEVM/WPScanner.git
+cd WPScanner
 pip install -r requirements.txt

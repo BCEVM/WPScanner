@@ -1,0 +1,9 @@
+{
+  "version": "6.0.0",
+  "github_sync": true,
+  "auto_update": false,
+  "timeout": 30,
+  "threads": 5,
+  "proxy": null,
+  "user_agent": "BCEVM-Scanner/6.0"
+}

@@ -1,2 +1,3 @@
-Python 3.6+
-requests library
+requests>=2.31.0
+colorama>=0.4.6
+urllib3>=1.26.0

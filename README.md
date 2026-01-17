@@ -30,8 +30,8 @@ cd WPScanner
 pip install -r requirements.txt
 
 ```
-###🎯 Quick Start ###  
-
+## 🎯 Quick Start ##  
+----------------------------
 # Scan a WordPress site
 python3 scanner.py https://example.com --scan
 

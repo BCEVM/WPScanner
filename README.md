@@ -69,3 +69,37 @@ python3 scanner.py --sync
 python3 scanner.py --config
 - ✅ **Show GitHub info**
 python3 scanner.py --github
+
+## ⚠️ Disclaimer
+
+**This tool is for educational purposes and authorized penetration testing only.**
+
+🚫 **DO NOT use this tool against websites you do not own or have explicit permission to test.**
+
+🔒 **Unauthorized access to computer systems is illegal and punishable by law.**
+
+## 📄 License
+
+MIT License - see [LICENSE](LICENSE) file for details.
+
+## 👥 Author
+
+**BCEVM - Hacktivist Indonesia**
+
+- GitHub: [@BCEVM](https://github.com/BCEVM)
+- Repository: [WPScanner](https://github.com/BCEVM/WPScanner)
+- Issues: [Report Bug](https://github.com/BCEVM/WPScanner/issues)
+
+## 🤝 Contributing
+
+Contributions are welcome! Please:
+
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Push to the branch
+5. Open a Pull Request
+
+## ⭐ Support
+
+If you find this tool useful, please give it a ⭐ on GitHub!

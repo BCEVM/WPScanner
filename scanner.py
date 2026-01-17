@@ -625,29 +625,71 @@ def setup_environment():
     with open(VERSION_FILE, 'w') as f:
         f.write(config.get("version", "6.0.0"))
     
-    # Create README if not exists
+    # Create README if not exists - SIMPLE VERSION
     if not os.path.exists("README.md"):
-        readme_content = f"""# BCEVM WordPress Security Scanner
-
-Advanced WordPress security scanner with auto-update from GitHub.
-
-## Features
-- Auto-update from GitHub (github.com/{GITHUB_USER}/{GITHUB_REPO})
-- WordPress vulnerability detection
-- Plugin enumeration
-- Report generation
-- WAF bypass techniques
-
-## Quick Start
-```bash
-# Scan a target
-python3 scanner.py https://example.com --scan
-
-# Check for updates
-python3 scanner.py --check-update
-
-# Update to latest version
-python3 scanner.py --update
-
-# Setup environment
-python3 scanner.py --setup
+        readme_lines = [
+            "# BCEVM WordPress Security Scanner",
+            "",
+            "Advanced WordPress security scanner with auto-update from GitHub.",
+            "",
+            "## Features",
+            f"- Auto-update from GitHub (github.com/{GITHUB_USER}/{GITHUB_REPO})",
+            "- WordPress vulnerability detection",
+            "- Plugin enumeration",
+            "- Report generation",
+            "- WAF bypass techniques",
+            "",
+            "## Quick Start",
+            "```bash",
+            "# Scan a target",
+            "python3 scanner.py https://example.com --scan",
+            "",
+            "# Check for updates",
+            "python3 scanner.py --check-update",
+            "",
+            "# Update to latest version",
+            "python3 scanner.py --update",
+            "",
+            "# Setup environment",
+            "python3 scanner.py --setup",
+            "```",
+            "",
+            "## GitHub Repository",
+            f"- URL: https://github.com/{GITHUB_USER}/{GITHUB_REPO}",
+            f"- Issues: https://github.com/{GITHUB_USER}/{GITHUB_REPO}/issues",
+            f"- Releases: https://github.com/{GITHUB_USER}/{GITHUB_REPO}/releases",
+            "",
+            "## Configuration",
+            f"Edit `{CONFIG_FILE}` to customize settings.",
+            "",
+            "## Requirements",
+            "- Python 3.6+",
+            "- requests library",
+            "",
+            "## Disclaimer",
+            "This tool is for educational purposes and authorized penetration testing only.",
+            "Unauthorized use against systems you don't own is illegal.",
+            "",
+            "## License",
+            "MIT License",
+            "",
+            "## Author",
+            "BCEVM - Hacktivist Indonesia"
+        ]
+        
+        with open("README.md", 'w') as f:
+            f.write("\n".join(readme_lines))
+        print(f"{Fore.GREEN}[+]{Style.RESET_ALL} README.md created")
+    
+    # Create requirements.txt
+    if not os.path.exists("requirements.txt"):
+        requirements = """requests>=2.31.0
+colorama>=0.4.6
+urllib3>=1.26.0
+"""
+        with open("requirements.txt", 'w') as f:
+            f.write(requirements)
+        print(f"{Fore.GREEN}[+]{Style.RESET_ALL} requirements.txt created")
+    
+    print(f"\n{Fore.GREEN}[✓]{Style.RESET_ALL} Environment setup completed")
+    return True

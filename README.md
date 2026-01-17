@@ -29,7 +29,8 @@ git clone https://github.com/BCEVM/WPScanner.git
 cd WPScanner
 pip install -r requirements.txt
 
-**## 📦 Installation** 
+```
+###🎯 Quick Start ###  
 
 # Scan a WordPress site
 python3 scanner.py https://example.com --scan

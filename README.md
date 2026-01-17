@@ -24,3 +24,24 @@ Advanced WordPress security scanner with auto-update from GitHub.
 ```bash
 wget https://raw.githubusercontent.com/BCEVM/WPScanner/main/scanner.py
 chmod +x scanner.py
+
+git clone https://github.com/BCEVM/WPScanner.git
+cd WPScanner
+pip install -r requirements.txt
+
+**## 📦 Installation** 
+
+# Scan a WordPress site
+python3 scanner.py https://example.com --scan
+
+# Check for updates
+python3 scanner.py --check-update
+
+# Update to latest version
+python3 scanner.py --update
+
+# Setup environment
+python3 scanner.py --setup
+
+# Show help
+python3 scanner.py --help

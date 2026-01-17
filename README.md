@@ -59,16 +59,6 @@ python3 scanner.py https://target.com --brute --username admin
 python3 scanner.py https://target.com --upload-test
 - ✅ **WAF bypass mode**
 python3 scanner.py https://target.com --waf-bypass
-- ✅ **Check for updates**
-python3 scanner.py --check-update
-- ✅ **Update tool**
-python3 scanner.py --update
-- ✅ **Sync exploit database**
-python3 scanner.py --sync
-- ✅ **Show configuration**
-python3 scanner.py --config
-- ✅ **Show GitHub info**
-python3 scanner.py --github
 
 ## ⚠️ Disclaimer
 

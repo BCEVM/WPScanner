@@ -17,6 +17,7 @@ Advanced WordPress security scanner with auto-update from GitHub.
 - ✅ **User enumeration**
 - ✅ **Brute force detection**
 - ✅ **Shell upload** capabilities
+<img width="1221" height="594" alt="image" src="https://github.com/user-attachments/assets/f91067d8-e5a7-4d58-83d3-44388e77d3e3" />
 
 ## 📦 Installation
 

@@ -7,15 +7,10 @@ Advanced WordPress security scanner with auto-update from GitHub.
 ![License](https://img.shields.io/badge/License-MIT-orange)
 
 ## 🚀 Features
-
-- ✅ **Auto-update** from GitHub
 - ✅ **Exploit database** with 50+ vulnerabilities
 - ✅ **WAF bypass** techniques
 - ✅ **Multi-threaded** scanning
 - ✅ **Compact reporting**
-- ✅ **Plugin enumeration**
-- ✅ **User enumeration**
-- ✅ **Brute force detection**
 - ✅ **Shell upload** capabilities
 <img width="1221" height="594" alt="image" src="https://github.com/user-attachments/assets/f91067d8-e5a7-4d58-83d3-44388e77d3e3" />
 
@@ -34,32 +29,14 @@ pip install -r requirements.txt
 ## 🎯 Quick Start ##  
 - ✅ **Scan a WordPress site**
 python3 scanner.py https://example.com --scan
-- ✅ **Check for updates**
-python3 scanner.py --check-update
-- ✅ **Update to latest version**
-python3 scanner.py --update
-- ✅ **Setup environment**
-python3 scanner.py --setup
 - ✅ **Show help**
 python3 scanner.py --help
 
 ## 📋 Usage Examples ##
-- ✅ **Simple scan**
-python3 scanner.py https://target.com --scan
-- ✅ **Full scan with exploitation**
-python3 scanner.py https://target.com --full
+- ✅ **Full scan with exploitation + shell**
+python3 scanner.py -f targets.txt --exploit --shell namashell 
 - ✅ **Scan from file (multiple targets)**
 python3 scanner.py -f targets.txt
-
-### advance features ###
-- ✅ **Exploit specific plugin**
-python3 scanner.py https://target.com --exploit --plugin "contact-form-7"
-- ✅ **Brute force attack**
-python3 scanner.py https://target.com --brute --username admin
-- ✅ **Shell upload test**
-python3 scanner.py https://target.com --upload-test
-- ✅ **WAF bypass mode**
-python3 scanner.py https://target.com --waf-bypass
 
 ## ⚠️ Disclaimer
 

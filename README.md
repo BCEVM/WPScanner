@@ -28,7 +28,7 @@ pip install -r requirements.txt
 ```
 ## 🎯 Quick Start ##  
 - ✅ **Scan a WordPress site**
-python3 scanner.py https://example.com --scan
+python3 scanner.py -f target.txt
 - ✅ **Show help**
 python3 scanner.py --help
 
